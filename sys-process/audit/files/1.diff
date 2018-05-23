@@ -1,0 +1,75 @@
+diff --git a/lib/libaudit.c b/lib/libaudit.c
+index f434d4a..544f455 100644
+--- a/lib/libaudit.c
++++ b/lib/libaudit.c
+@@ -943,15 +943,24 @@ int audit_rule_syscallbyname_data(struct audit_rule_data *rule,
+ 	int nr, i;
+ 	int machine;
+ 
++	audit_msg(LOG_ERR, "%s:%d scall: @%s@\n", __func__, __LINE__, scall);
++	audit_msg(LOG_ERR, "%s:%d _audit_elf: %u\n", __func__, __LINE__, _audit_elf);
++	
+ 	if (!strcmp(scall, "all")) {
+ 		for (i = 0; i < AUDIT_BITMASK_SIZE; i++) 
+ 			rule->mask[i] = ~0;
+ 		return 0;
+ 	}
+-	if (!_audit_elf)
++	if (!_audit_elf) {
++		audit_msg(LOG_ERR, "%s:%d no _audit_elf @%s@\n", __func__, __LINE__, scall);
+ 		machine = audit_detect_machine();
+-	else
++	} else {
++		audit_msg(LOG_ERR, "%s:%d _audit_elf @%s@\n", __func__, __LINE__, scall);
+ 		machine = audit_elf_to_machine(_audit_elf);
++	}
++
++	audit_msg(LOG_ERR, "%s:%d machine: %d\n", __func__, __LINE__, machine);
++
+ 	if (machine < 0)
+ 		return -2;
+ 	nr = audit_name_to_syscall(scall, machine);
+diff --git a/src/auditctl.c b/src/auditctl.c
+index beac1b8..7a2bf5c 100644
+--- a/src/auditctl.c
++++ b/src/auditctl.c
+@@ -482,17 +482,21 @@ int parse_syscall(struct audit_rule_data *rule_new, const char *optarg)
+ 	int retval = 0;
+ 	char *saved;
+ 
++	audit_msg(LOG_ERR, "%s:%d >\n", __func__, __LINE__);
++
+ 	if (strchr(optarg, ',')) {
+ 		char *ptr, *tmp = strdup(optarg);
+ 		if (tmp == NULL)
+ 			return -1;
++		audit_msg(LOG_ERR, "%s:%d GOT ,\n", __func__, __LINE__);
+ 		ptr = strtok_r(tmp, ",", &saved);
+ 		while (ptr) {
++			audit_msg(LOG_ERR, "%s:%d test @%s@\n", __func__, __LINE__, ptr);
+ 			retval = audit_rule_syscallbyname_data(rule_new, ptr);
+ 			if (retval != 0) {
+ 				if (retval == -1) {
+ 					audit_msg(LOG_ERR,
+-						"Syscall name unknown: %s", 
++						"Syscall name unknown1: %s", 
+ 						ptr);
+ 					retval = -3; // error reported
+ 				}
+@@ -504,6 +508,7 @@ int parse_syscall(struct audit_rule_data *rule_new, const char *optarg)
+ 		return retval;
+ 	}
+ 
++		audit_msg(LOG_ERR, "%s:%d NO ,\n", __func__, __LINE__);
+ 	return audit_rule_syscallbyname_data(rule_new, optarg);
+ }
+ 
+@@ -790,7 +795,7 @@ static int setopt(int count, int lineno, char *vars[])
+ 					check_rule_mismatch(lineno, optarg);
+ 				break;
+ 			case -1:
+-				audit_msg(LOG_ERR, "Syscall name unknown: %s", 
++				audit_msg(LOG_ERR, "Syscall name unknown2: %s", 
+ 							optarg);
+ 				retval = -1;
+ 				break;

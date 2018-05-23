@@ -80,6 +80,8 @@ src_prepare() {
 			-i src/Makefile.am || die
 	fi
 
+	eapply "${FILESDIR}"/1.diff
+
 	# Regenerate autotooling
 	eautoreconf
 }
