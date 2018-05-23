@@ -7,4 +7,5 @@
 # For info on configuring audit rules see the auditctl man page and
 # https://github.com/torvalds/linux/blob/master/include/uapi/linux/audit.h
 
--a always,exclude -F msgtype!=AVC -F msgtype!=CONFIG_CHANGE
+
+#-a always,exclude -F msgtype!=AVC -F msgtype!=CONFIG_CHANGE
